@@ -14,7 +14,8 @@
   "dependencies": {
     "dotenv": "^16.0.3",
     "fastify": "^4.9.2",
-    "firebase-admin": "^11.2.0"
+    "firebase-admin": "^11.2.0",
+    "zod": "^3.19.1"
   },
   "devDependencies": {
     "@types/node": "^18.11.7",

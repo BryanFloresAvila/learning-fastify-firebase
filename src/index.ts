@@ -1,22 +1,21 @@
-import { storage, firestore } from './database/firebase';
-const bucket = storage.bucket();
+import Fastify from 'fastify';
+import userRoutes from './network/routes/user';
+const fastify = Fastify({ logger: true });
 
-interface User {
-  name: string;
-  phone: string;
-  photos: string[];
-}
+/* fastify.register((instance, opts, done) => {
+  instance.decorate('util', (a: number, b: number): number => a + b);
+  console.log(instance.util(1, 2));
+  done();
+}); */
 
-const createUser = (user: User) => {
-  // create a new user in the database
-  firestore.collection('users').add(user);
+fastify.register(userRoutes); // register user routes
+
+const start = async () => {
+  try {
+    await fastify.listen({ port: 3000 });
+  } catch (err) {
+    fastify.log.error(err);
+    process.exit(1);
+  }
 };
-
-const uploadPhoto = ()
-
-const user: User = {
-  name: 'John Doe',
-  phone: '555-555-5555',
-  photos: ['https://example.com/photo1.jpg', 'https://example.com/photo2.jpg'],
-};
-createUser(user);
+start();

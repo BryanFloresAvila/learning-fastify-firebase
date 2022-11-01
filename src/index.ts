@@ -2,12 +2,7 @@ import Fastify from 'fastify';
 import userRoutes from './network/routes/user';
 const fastify = Fastify({ logger: true });
 
-/* fastify.register((instance, opts, done) => {
-  instance.decorate('util', (a: number, b: number): number => a + b);
-  console.log(instance.util(1, 2));
-  done();
-}); */
-
+fastify.register(require('fastify-multipart')); //register plugin to handle multipart/form-data
 fastify.register(userRoutes); // register user routes
 
 const start = async () => {

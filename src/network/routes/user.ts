@@ -1,18 +1,11 @@
 import { FastifyInstance } from 'fastify';
 import { firestore, storage } from '../../database/firebase';
-import { UserRequest } from '../../schemas/schema';
+import { UserRequest, UserResponse, FilesRequest , $ref} from '../../schemas/schema';
 import { BusboyConfig, BusboyFileStream } from '@fastify/busboy';
 import User from '../../services/user';
 import pump from 'pump';
+import UserService from '../../services/user';
 
-// create a instance of User class
-const user = new User();
-
-interface UserData {
-  phone: string;
-  idFolder: string;
-  name: string;
-}
 
 declare namespace fastifyMultipart {
   export interface MultipartFields {
@@ -46,21 +39,13 @@ declare module 'fastify' {
 }
 
 export default async function userRoutes(server: FastifyInstance) {
-  server.route<{
-    Body: UserRequest;
-  }>({
+  server.route({
     method: 'POST',
     url: '/user',
-    handler: async (request, reply) => {
-      const { name, phone } = request.body;
-      const userRef = firestore.collection('users').doc();
-      const userFolderId = `${name}-${userRef.id}`;
-      /* const folderRef = storage.bucket().file(`${name}-${userRef.id}`); */
-
-      await userRef.set({ name, phone, idFolder: userFolderId });
-      /* await folderRef.save(''); //create folder */
-      reply.send({ name, phone, idFolder: userFolderId });
+    schema: {
+      body: $ref('userSchema'),
     },
+    handler: UserService.createUser,
   });
   //endpoint to upload photos to the user folder
   server.route<{
@@ -68,17 +53,18 @@ export default async function userRoutes(server: FastifyInstance) {
   }>({
     method: 'POST',
     url: '/user/:idFolder/upload',
+    schema: {
+      body: $ref('filesSchema'),
+    },
     handler: async (request, reply) => {
       const { idFolder } = request.params;
-      //idFolder?
       if (!idFolder) {
         reply.code(400).send({ error: 'idFolder is required' });
         return;
       }
-
       const [username, id] = idFolder.split('-');
-      const user = (await firestore.doc(`users/${id}`).get()).data() as UserData | undefined;
-
+      const user = (await firestore.doc(`users/${id}`).get()).data() as UserResponse | undefined;
+ 
       if (!user) {
         reply.code(404).send({ error: 'User not found' });
         return;
@@ -90,11 +76,25 @@ export default async function userRoutes(server: FastifyInstance) {
       }
 
       // upload files
-      const files = await request.files();
+      /* const files = await request.files();
+
+
       for await (const file of files) {
         const bufferFile = await file.toBuffer();
+        console.log(bufferFile)
         await storage.bucket().file(`${idFolder}/${file.filename}`).save(bufferFile);
-      }
+      } */
+
+      /* const jsonFiles = request.body as FilesRequest;
+      
+      for (const file in jsonFiles) {
+        const bufferFile = Buffer.from(jsonFiles[file as keyof typeof jsonFiles]).toString('utf-8');
+        console.log(file)
+
+      } */
+
+      /* console.log(request.body) */
+
     },
   });
 }

@@ -1,11 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import { firestore, storage } from '../../database/firebase';
-import { UserRequest, UserResponse, FilesRequest , $ref} from '../../schemas/schema';
+import { UserRequest, UserResponse, $ref } from '../../schemas/schema';
 import { BusboyConfig, BusboyFileStream } from '@fastify/busboy';
-import User from '../../services/user';
-import pump from 'pump';
 import UserService from '../../services/user';
-
 
 declare namespace fastifyMultipart {
   export interface MultipartFields {
@@ -50,12 +47,13 @@ export default async function userRoutes(server: FastifyInstance) {
   //endpoint to upload photos to the user folder
   server.route<{
     Params: { idFolder: string };
+    Body: FilesRequest;
   }>({
     method: 'POST',
     url: '/user/:idFolder/upload',
-    schema: {
+    /* schema: {
       body: $ref('filesSchema'),
-    },
+    }, */
     handler: async (request, reply) => {
       const { idFolder } = request.params;
       if (!idFolder) {
@@ -64,7 +62,7 @@ export default async function userRoutes(server: FastifyInstance) {
       }
       const [username, id] = idFolder.split('-');
       const user = (await firestore.doc(`users/${id}`).get()).data() as UserResponse | undefined;
- 
+
       if (!user) {
         reply.code(404).send({ error: 'User not found' });
         return;
@@ -75,6 +73,13 @@ export default async function userRoutes(server: FastifyInstance) {
         return;
       }
 
+      const buff = request.body.image1;
+      await storage.bucket().file(`${idFolder}/image1.jpg`).save(buff);
+
+      /* Object.keys(files).forEach(async (key: string) => {
+        const file: MultipartFile = files[key];
+ */
+
       // upload files
       /* const files = await request.files();
 
@@ -84,7 +89,6 @@ export default async function userRoutes(server: FastifyInstance) {
         console.log(bufferFile)
         await storage.bucket().file(`${idFolder}/${file.filename}`).save(bufferFile);
       } */
-
       /* const jsonFiles = request.body as FilesRequest;
       
       for (const file in jsonFiles) {
@@ -92,9 +96,7 @@ export default async function userRoutes(server: FastifyInstance) {
         console.log(file)
 
       } */
-
       /* console.log(request.body) */
-
     },
   });
 }

@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { firestore, storage } from '../database/firebase';
+import { firestore } from '../database/firebase';
 import { UserRequest } from '../schemas/schema';
 
 export default class UserServicess {

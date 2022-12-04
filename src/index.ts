@@ -1,33 +1,22 @@
 import Fastify from 'fastify';
 import { userSchemas } from './schemas/schema';
 import userRoutes from './network/routes/user';
-import { MultipartFile, MultipartValue } from '@fastify/multipart';
-import { request } from 'http';
 const fastify = Fastify({ logger: true });
 
 fastify.register(require('@fastify/multipart'), {
-  attachFieldsToBody: 'keyValues',
   limits: {
-    files: 3,
     fields: 3,
-  },
-  onFile,
+    files: 3,
+  }
 });
 
-interface MultipartFileExtended extends MultipartFile {
-  value: Buffer;
-}
-
-async function onFile(part: MultipartFileExtended) {
-  const buff = await part.toBuffer();
-  part.value = buff;
-}
 
 for (const schema of userSchemas) {
   fastify.addSchema(schema);
 }
 
 fastify.register(userRoutes); // register user routes
+
 
 const start = async () => {
   try {

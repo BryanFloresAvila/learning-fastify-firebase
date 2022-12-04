@@ -20,7 +20,6 @@
     "fastify-zod": "^1.2.0",
     "firebase-admin": "^11.2.0",
     "pump": "^3.0.0",
-    "ts-to-zod": "^1.13.1",
     "zod": "^3.19.1"
   },
   "devDependencies": {
